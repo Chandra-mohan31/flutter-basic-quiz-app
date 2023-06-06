@@ -21,7 +21,8 @@ class _MyCustomAppState extends State<MyCustomApp> {
         {'text': 'csk', 'color': Colors.black},
         {'text': 'mi', 'color': Colors.black},
         {'text': 'lsg', 'color': Colors.black}
-      ]
+      ],
+      'isButtonEnabled': 'true'
     },
     {
       'question': 'Who won the IPL 2022',
@@ -30,7 +31,8 @@ class _MyCustomAppState extends State<MyCustomApp> {
         {'text': 'csk', 'color': Colors.black},
         {'text': 'gt', 'color': Colors.black},
         {'text': 'lsg', 'color': Colors.black}
-      ]
+      ],
+      'isButtonEnabled': 'true'
     },
     {
       'question': 'What is the capital of France?',
@@ -39,24 +41,30 @@ class _MyCustomAppState extends State<MyCustomApp> {
         {'text': 'Paris', 'color': Colors.black},
         {'text': 'London', 'color': Colors.black},
         {'text': 'Berlin', 'color': Colors.black}
-      ]
+      ],
+      'isButtonEnabled': 'true'
     },
   ];
 
-  void handleAnswer(question, ans) {
+  void handleAnswer(question, ans, indexToChangeColor) {
     for (int i = 0; i < mcqs.length; i++) {
       if (mcqs[i]['question'] == question) {
+        // mcqs[i]['isButtonEnabled'] = false;
+
         if (ans == mcqs[i]['answer']) {
           print('right answer');
           setState(() {
             score += 1;
-            mcqs[i]['options'][i]['color'] = Colors.green;
+            mcqs[i]['options'][indexToChangeColor]['color'] = Colors.green;
           });
           print(score);
         } else {
           print('wrong answer');
-          mcqs[i]['options'][i]['color'] = Colors.red;
+          setState(() {
+            mcqs[i]['options'][indexToChangeColor]['color'] = Colors.red;
+          });
         }
+        mcqs[i]['isButtonEnabled'] = 'false';
       }
     }
   }
@@ -65,7 +73,10 @@ class _MyCustomAppState extends State<MyCustomApp> {
     setState(() {
       score = 0;
       for (int j = 0; j < mcqs.length; j++) {
-        mcqs[j]['options'][j]['color'] = Colors.black;
+        mcqs[j]['isButtonEnabled'] = 'true';
+        for (int k = 0; k < 3; k++) {
+          mcqs[j]['options'][k]['color'] = Colors.black;
+        }
       }
     });
     print('score is reset!');
@@ -124,26 +135,45 @@ class _MyCustomAppState extends State<MyCustomApp> {
                             ),
                           ),
                           if (quizQues['options'] != null)
-                            for (var opt in quizQues['options'])
+                            for (int j = 0; j < quizQues['options'].length; j++)
                               Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 6, horizontal: 6),
                                 child: Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: opt['color'],
+                                    width: MediaQuery.of(context).size.width,
+                                    child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty
+                                            .resolveWith<Color>((states) {
+                                          if (states.contains(
+                                              MaterialState.disabled)) {
+                                            return quizQues['options'][j][
+                                                'color']; // Set the disabled color
+                                          }
+                                          return quizQues['options'][j][
+                                              'color']; // Set the enabled color
+                                        }),
+                                        foregroundColor: MaterialStateProperty
+                                            .all<Color>(Colors
+                                                .white), // Set the text color
                                       ),
-                                      onPressed: () => handleAnswer(
-                                          quizQues['question'],
-                                          opt['text'].toString()),
+                                      onPressed:
+                                          quizQues['isButtonEnabled'] == 'true'
+                                              ? () => handleAnswer(
+                                                  quizQues['question'],
+                                                  quizQues['options'][j]['text']
+                                                      .toString(),
+                                                  j)
+                                              : null,
                                       child: Text(
-                                        opt['text'].toString(),
+                                        quizQues['options'][j]['text']
+                                            .toString(),
                                         style: const TextStyle(
-                                            fontSize: 20,
-                                            fontStyle: FontStyle.italic),
-                                      )),
-                                ),
+                                          fontSize: 20,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    )),
                               ),
                         ],
                         crossAxisAlignment: CrossAxisAlignment.center,
